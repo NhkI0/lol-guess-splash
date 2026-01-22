@@ -1,13 +1,22 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import cliProgress from 'cli-progress'
+
+import { getLastVersion} from "./getLastVersion.js";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const useCentered = args.includes("--centered");
 const splashType = useCentered ? "centered" : "uncentered";
 
-const BASE_URL =
-  "https://raw.communitydragon.org/16.1/plugins/rcp-be-lol-game-data/global/default";
+const CURRENT_VERSION = await getLastVersion();
+
+const BASE_URL= `https://raw.communitydragon.org/${CURRENT_VERSION}/plugins/rcp-be-lol-game-data/global/default`;
 const CHAMPS_URL = "/v1/champions"
 const ASSETS_URL = "/assets/characters";
 
@@ -176,11 +185,22 @@ async function main() {
   console.log(`Using ${splashType} splash images...`);
   console.log("Fetching champion list...");
   const championIds = await fetchChampionList();
-  console.log(`Found ${championIds.length} champions`);
+  const total = championIds.length;
+  console.log(`Found ${total} champions`);
 
   const champions = [];
 
+  const multibar = new cliProgress.MultiBar({
+        clearOnComplete: false,
+        hideCursor: true,
+        format: '{label} |{bar}| {percentage}% | {value}/{total}'
+    }, cliProgress.Presets.shades_classic);
+
+  const progressBar = multibar.create(total, 0, { label: 'Progress  ' });
+
+  let current = 0;
   for (const id of championIds) {
+    current += 1;
     try {
       const champion = await fetchChampionData(id);
       if (champion) {
@@ -207,14 +227,16 @@ async function main() {
         champion.skins = skins;
 
         champions.push(champion);
-        console.log(`Fetched: ${champion.name} (${champion.id}) - ${Object.keys(skins).length} skins`);
+        multibar.log(`Fetched: ${champion.name} (${champion.id}) - ${Object.keys(skins).length} skins\n`);
       } else {
-        console.log(`Skipped: ${id} (Doom Bot)`);
+        multibar.log(`Skipped: ${id} (Doom Bot)\n`);
       }
     } catch (error) {
-      console.error(`Failed to fetch champion ${id}:`, error.message);
+      multibar.log(`Failed to fetch champion ${id}: ${error.message}\n`);
     }
+    progressBar.update(current+1);
   }
+  multibar.stop();
 
   champions.sort((a, b) => a.name.localeCompare(b.name));
 
