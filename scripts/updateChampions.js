@@ -7,15 +7,14 @@ const useCentered = args.includes("--centered");
 const splashType = useCentered ? "centered" : "uncentered";
 
 const BASE_URL =
-  "https://raw.communitydragon.org/16.1/plugins/rcp-be-lol-game-data/global/default/v1/champions";
-const ASSETS_URL =
-  "https://raw.communitydragon.org/16.1/plugins/rcp-be-lol-game-data/global/default/assets/characters";
+  "https://raw.communitydragon.org/16.1/plugins/rcp-be-lol-game-data/global/default";
+const CHAMPS_URL = "/v1/champions"
+const ASSETS_URL = "/assets/characters";
 
-// Convert champion name to folder name format (lowercase, no spaces/special chars)
 function toFolderName(name) {
   const lowerName = name.toLowerCase();
 
-  // Special cases where folder name differs from champion name
+  // Special cases cause fuck riots spaghetti code
   if (lowerName.includes("nunu")) return "nunu";
   if (lowerName.includes("wukong")) return "monkeyking";
   if (lowerName.includes("renata")) return "renata";
@@ -26,7 +25,7 @@ function toFolderName(name) {
 }
 
 async function fetchChampionList() {
-  const response = await fetch(`${BASE_URL}/`);
+  const response = await fetch(`${BASE_URL+CHAMPS_URL}/`);
   const html = await response.text();
 
   const jsonFiles = [];
@@ -43,8 +42,9 @@ async function fetchChampionList() {
 }
 
 async function fetchSkinImagePath(folderName, skinNum) {
-  const paddedNum = skinNum.toString().padStart(2, "0");
-  const imagesUrl = `${ASSETS_URL}/${folderName}/skins/skin${paddedNum}/images/`;
+  // Base skin uses "base" folder, others use "skinXX" format
+  const skinFolder = skinNum === 0 ? "base" : `skin${skinNum.toString().padStart(2, "0")}`;
+  const imagesUrl = `${BASE_URL+ASSETS_URL}/${folderName}/skins/${skinFolder}/images/`;
 
   try {
     const response = await fetch(imagesUrl);
@@ -52,15 +52,13 @@ async function fetchSkinImagePath(folderName, skinNum) {
 
     const html = await response.text();
 
-    // Find the splash image (centered or uncentered based on option)
     const splashRegex = new RegExp(`href="([^"]*_splash_${splashType}_[^"]*\\.jpg)"`);
     const match = splashRegex.exec(html);
 
     if (match) {
-      return `${folderName}/skins/skin${paddedNum}/images/${match[1]}`;
+      return `${folderName}/skins/${skinFolder}/images/${match[1]}`;
     }
   } catch (error) {
-    // Silently skip errors
   }
 
   return null;
@@ -71,10 +69,14 @@ async function fetchAvailableSkinNumbers(championName) {
   const skinNumbers = new Set();
 
   try {
-    const response = await fetch(`${ASSETS_URL}/${folderName}/skins/`);
+    const response = await fetch(`${BASE_URL+ASSETS_URL}/${folderName}/skins/`);
     if (!response.ok) return skinNumbers;
 
     const html = await response.text();
+
+    if (html.includes('href="base/"')) {
+      skinNumbers.add(0);
+    }
 
     // Extract skin numbers from folder names (skin01, skin21, etc.)
     const skinRegex = /href="skin(\d+)\/"/g;
@@ -90,7 +92,7 @@ async function fetchAvailableSkinNumbers(championName) {
 }
 
 async function fetchChampionData(id) {
-  const response = await fetch(`${BASE_URL}/${id}.json`);
+  const response = await fetch(`${BASE_URL+CHAMPS_URL}/${id}.json`);
   const data = await response.json();
   let aliases = [];
 
@@ -190,14 +192,11 @@ async function main() {
         for (const skin of champion.skinsData) {
           const skinNum = skin.id % 1000;
 
-          // Skip base skin (skinNum 0) and check if folder exists
-          if (skinNum === 0) continue;
           if (!availableSkinNumbers.has(skinNum)) continue;
 
-          // Skip skins with a date in parentheses (e.g., "(2022)")
+          // Skip 2nd version of prestige skins (ex: 2022)
           if (/\(\d{4}\)/.test(skin.name)) continue;
 
-          // Fetch actual image path from the images folder
           const imagePath = await fetchSkinImagePath(folderName, skinNum);
           if (imagePath) {
             skins[skin.name] = imagePath;
@@ -217,7 +216,6 @@ async function main() {
     }
   }
 
-  // Sort by name
   champions.sort((a, b) => a.name.localeCompare(b.name));
 
   const outputPath = path.join(__dirname, "..", "data", "champions.json");
