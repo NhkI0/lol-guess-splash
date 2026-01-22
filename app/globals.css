@@ -63,12 +63,18 @@ h1 {
     display: block;
 }
 
+.input_wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    z-index: 10;
+}
+
 .input_container {
     display: flex;
     gap: 12px;
     align-items: stretch;
     width: 100%;
-    max-width: 500px;
 }
 
 .text_field {
@@ -128,6 +134,21 @@ h1 {
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+.send_button.disabled,
+.send_button:disabled {
+    background: linear-gradient(180deg, #666 0%, #444 100%);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.send_button.disabled:hover,
+.send_button:disabled:hover {
+    transform: none;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 .wrong_guesses_list {
     list-style: none;
     width: 100%;
@@ -147,4 +168,156 @@ h1 {
     color: #ffffff;
     font-size: 0.95rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.suggestions_list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    padding: 0;
+    list-style: none;
+    background-color: #0a0a14;
+    border: 2px solid #ffc524;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion_item {
+    padding: 12px 18px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.suggestion_item:hover,
+.suggestion_item.selected {
+    background: rgba(255, 197, 36, 0.2);
+}
+
+.suggestion_item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 197, 36, 0.3);
+}
+
+.skins_list_container {
+    width: 100% !important;
+    max-width: 600px !important;
+    margin-top: 24px !important;
+    display: block !important;
+}
+
+.skins_list_title {
+    color: #ffc524 !important;
+    font-size: 1.1rem !important;
+    margin: 0 0 16px 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    font-weight: 600 !important;
+}
+
+.skins_list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: center !important;
+}
+
+.skin_list_item {
+    padding: 10px 16px !important;
+    background-color: #0a0a14 !important;
+    border: 2px solid #ffc524 !important;
+    border-radius: 6px !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    display: block !important;
+}
+
+/* Win Animation */
+.win_overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 9999 !important;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.win_content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px;
+    padding: 40px;
+    animation: scaleIn 0.4s ease-out forwards;
+}
+
+.win_label {
+    font-size: 2rem;
+    color: #4ade80;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.win_name {
+    font-family: 'Britannic Bold', 'Cinzel', serif;
+    font-size: clamp(2.5rem, 10vw, 5rem);
+    color: #ffc524;
+    text-align: center;
+    margin: 0;
+    text-shadow:
+        0 0 20px rgba(255, 197, 36, 0.6),
+        0 0 40px rgba(255, 197, 36, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.8);
+    animation: glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes glow {
+    from {
+        text-shadow:
+            0 0 20px rgba(255, 197, 36, 0.6),
+            0 0 40px rgba(255, 197, 36, 0.4),
+            0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+    to {
+        text-shadow:
+            0 0 30px rgba(255, 197, 36, 0.8),
+            0 0 60px rgba(255, 197, 36, 0.6),
+            0 0 80px rgba(255, 197, 36, 0.4),
+            0 4px 8px rgba(0, 0, 0, 0.8);
+    }
 }
