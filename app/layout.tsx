@@ -7,6 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+    <title>Guess The Splash</title>
     <body>{children}</body>
 
     </html>
