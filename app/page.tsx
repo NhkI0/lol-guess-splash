@@ -88,22 +88,6 @@ export default function Home() {
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    } else {
-      // Skin phase - autocomplete on skin names of current champion
-      if (!champion) return;
-
-      const skinNames = Object.keys(champion.skins);
-
-      if (value.trim().length > 0) {
-        const filtered = skinNames
-          .filter((name) => name.toLowerCase().startsWith(valueLower))
-          .slice(0, 5);
-        setSuggestions(filtered);
-        setShowSuggestions(filtered.length > 0);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
     }
   };
 
