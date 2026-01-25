@@ -51,23 +51,27 @@ async function fetchChampionList() {
 }
 
 async function fetchSkinImagePath(folderName, skinNum) {
-  // Base skin uses "base" folder, others use "skinXX" format
-  const skinFolder = skinNum === 0 ? "base" : `skin${skinNum.toString().padStart(2, "0")}`;
-  const imagesUrl = `${BASE_URL+ASSETS_URL}/${folderName}/skins/${skinFolder}/images/`;
+  const possibleFolders = skinNum === 0
+    ? ["base", "skin0", "skin00"]
+    : [`skin${skinNum}`, `skin${skinNum.toString().padStart(2, "0")}`];
 
-  try {
-    const response = await fetch(imagesUrl);
-    if (!response.ok) return null;
+  for (const skinFolder of possibleFolders) {
+    const imagesUrl = `${BASE_URL+ASSETS_URL}/${folderName}/skins/${skinFolder}/images/`;
 
-    const html = await response.text();
+    try {
+      const response = await fetch(imagesUrl);
+      if (!response.ok) continue;
 
-    const splashRegex = new RegExp(`href="([^"]*_splash_${splashType}_[^"]*\\.jpg)"`);
-    const match = splashRegex.exec(html);
+      const html = await response.text();
 
-    if (match) {
-      return `${folderName}/skins/${skinFolder}/images/${match[1]}`;
+      const splashRegex = new RegExp(`href="([^"]*_splash_${splashType}_[^"]*\\.jpg)"`);
+      const match = splashRegex.exec(html);
+
+      if (match) {
+        return `${folderName}/skins/${skinFolder}/images/${match[1]}`;
+      }
+    } catch (error) {
     }
-  } catch (error) {
   }
 
   return null;
@@ -206,12 +210,10 @@ async function main() {
       if (champion) {
         const folderName = toFolderName(champion.name);
         const availableSkinNumbers = await fetchAvailableSkinNumbers(champion.name);
-
         // Build skins object: { "Skin Name": "path/to/image.jpg" }
         const skins = {};
         for (const skin of champion.skinsData) {
           const skinNum = skin.id % 1000;
-
           if (!availableSkinNumbers.has(skinNum)) continue;
 
           // Skip 2nd version of prestige skins (ex: 2022)
