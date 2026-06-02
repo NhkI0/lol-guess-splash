@@ -198,6 +198,11 @@ export default function Home() {
               className="image"
               src={ASSETS_BASE_URL + skinPath}
               alt="Champion splash art"
+              onError={(e) => {
+                const img = e.currentTarget;
+                const fallback = img.src.replace(/\.skins_[^/]+\.jpg$/, ".jpg");
+                if (fallback !== img.src) img.src = fallback;
+              }}
               style={{
                 transform: position ? `scale(${zoom})` : "scale(1)",
                 transformOrigin: position ? `${position.x}% ${position.y}%` : "50% 50%",
